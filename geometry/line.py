@@ -1,6 +1,8 @@
 from shapely.ops import nearest_points, split, snap
-from shapely.geometry import MultiPoint, MultiPolygon, LineString
+from shapely.geometry import Point, MultiPoint, MultiPolygon, LineString
 import rtree
+
+from geometry.common import find_closest
 
 def make_points_on_line(geom, distance):
     """ Create points along a line at a fixed distance. Note that lines
@@ -100,14 +102,12 @@ def join_points_to_lines(points, lines):
             index_ids = [int(i) for i in index.intersection(buffered.bounds)]
             r *= 2
 
-        closest_line = lines[index_ids[0]]  # doesn't seem to work well
-        
-        # nearest_points method (attaches anywhere on a line)
-        # join_points = nearest_points(closest_line, geom)
-        # joins.append(LineString(join_points))
-        
-        # snap method (only attaches to line endpoints)
-        closest_point_on_line = snap(geom, closest_line, r*100)
+        points_in_lines = []
+        for l in [lines[ind] for ind in index_ids]:
+            points_in_lines.append(Point(l.coords[0]))
+            points_in_lines.append(Point(l.coords[-1]))
+
+        closest_point_on_line, d = find_closest(geom, points_in_lines)
         joins.append(LineString((geom, closest_point_on_line)))
     
     return joins
