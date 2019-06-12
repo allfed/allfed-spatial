@@ -4,10 +4,14 @@ import numpy as np
 import pyproj
 from shapely.geometry import Point
 
-def raster_to_points(path):
+from features.feature import Feature
+
+
+def raster_to_features(path):
     """ Convert each pixel in a raster to a Shapely Point located at that 
     pixels centroid, and give it a value attribute equal to the pixels value.
-    
+    Return these as a list of Features.
+
     Arguments:
         path {str} -- Path to raster file
 
@@ -25,24 +29,28 @@ def raster_to_points(path):
         T0 = r.transform  # upper-left pixel corner affine transform
         p1 = pyproj.Proj(r.crs)
         A = r.read()  # pixel values
+        pixelSizeX, pixelSizeY = r.res
 
     # Get affine transform for pixel centres
     T1 = T0 * Affine.translation(0.5, 0.5)
 
     # Function to convert pixel row/column index (from 0) to lat/lon at centre
-    rc2en = lambda r, c: (c, r) * T1
+    def rc2en(r, c): return (c, r) * T1
 
-    geoms = []
-    data = []
+    features = []
     it = np.nditer(A, flags=['multi_index'])
 
     while not it.finished:
         value = np.asscalar(it[0])
         if value > 0:
-            geoms.append(Point(rc2en(it.multi_index[1], it.multi_index[2])))
-            data.append(
-                {'value': np.asscalar(it[0])}
-            )
+            features.append(Feature(
+                Point(rc2en(it.multi_index[1], it.multi_index[2])),
+                {
+                    'value': np.asscalar(it[0]),
+                    # assumes projected CRS
+                    'pixel_size': (pixelSizeX * pixelSizeY) * 1e-6
+                }
+            ))
         it.iternext()
-    
-    return geoms, data
+
+    return features
