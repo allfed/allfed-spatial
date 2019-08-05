@@ -1,5 +1,5 @@
-from shapely.ops import nearest_points, split, snap
-from shapely.geometry import Point, MultiPoint, MultiPolygon, LineString
+from shapely.ops import split
+from shapely.geometry import Point, MultiPolygon, LineString
 import rtree
 import math
 

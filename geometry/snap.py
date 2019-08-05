@@ -1,6 +1,6 @@
 import rtree
 import copy
-from shapely.ops import snap, nearest_points
+from shapely.ops import nearest_points
 from shapely.geometry import LineString, Point
 
 from geometry.common import intersects, closest_non_intersecting_within_radius

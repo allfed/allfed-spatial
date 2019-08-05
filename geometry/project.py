@@ -7,8 +7,10 @@ from functools import partial
 # to these concepts:
 # https://docs.qgis.org/3.4/en/docs/gentle_gis_introduction/coordinate_reference_systems.html
 
-# https://epsg.io/54002
+# https://epsg.io/54002 is equal distance
 WORLD_PROJECTION_STRING = '+proj=eqc +lat_ts=60 +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs'
+
+# 54034 is equal area
 
 # TODO sort out utm functions
 
