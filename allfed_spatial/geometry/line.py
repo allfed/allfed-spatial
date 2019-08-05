@@ -3,8 +3,8 @@ from shapely.geometry import Point, MultiPolygon, LineString
 import rtree
 import math
 
-from allfed_spatial.geometry import closest
-from allfed_spatial.features import Feature
+from allfed_spatial.features.feature import Feature
+from allfed_spatial.geometry.common import closest
 
 
 def make_points_on_line(geom, distance):

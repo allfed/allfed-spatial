@@ -1,6 +1,6 @@
 from shapely.ops import linemerge
 
-from allfed_spatial.features import Feature
+from allfed_spatial.features.feature import Feature
 
 
 def merge_features(features):

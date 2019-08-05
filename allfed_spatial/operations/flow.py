@@ -1,5 +1,4 @@
 from ortools.graph import pywrapgraph
-import networkx as nx
 
 CAPACITY_PER_EDGE = 1000000000
 
