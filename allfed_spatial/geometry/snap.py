@@ -3,8 +3,8 @@ import copy
 from shapely.ops import nearest_points
 from shapely.geometry import LineString, Point
 
-from geometry.common import intersects, closest_non_intersecting_within_radius
-from features.feature import Feature
+from allfed_spatial.geometry import intersects, closest_non_intersecting_within_radius
+from allfed_spatial.features import Feature
 
 
 def snap_features(r, features):

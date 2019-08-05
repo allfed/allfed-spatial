@@ -2,7 +2,7 @@ import fiona
 from shapely.geometry import mapping, LineString, Polygon, Point, shape, MultiPolygon
 from fiona.crs import from_epsg
 
-from features.feature import Feature
+from allfed_spatial.features import Feature
 
 
 def get_fiona_type(value):

@@ -4,7 +4,7 @@ import numpy as np
 import pyproj
 from shapely.geometry import Point
 
-from features.feature import Feature
+from allfed_spatial.features import Feature
 
 
 def raster_to_features(path):

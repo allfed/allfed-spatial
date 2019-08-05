@@ -1,5 +1,5 @@
 import unittest
-from operations.consume import consume
+from allfed_spatial.operations import consume
 
 
 class TestConsume(unittest.TestCase):
