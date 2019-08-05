@@ -1,3 +1,3 @@
-# 🌾 allfed-spatial
+# 🍇 allfed-spatial
 
-Code and workflows for spatial analysis in global agriculture
+Helper code for spatial data processing and analysis in ALLFED projects
