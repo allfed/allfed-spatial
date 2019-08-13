@@ -1,1 +1,5 @@
 .idea
+.noseids
+.vscode/**
+**/__pycache__/**
+*.egg-info/**
