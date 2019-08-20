@@ -16,7 +16,7 @@ def closest(geom, targets, n=1):
     """
     if len(targets) < n:
         raise ValueError(
-            'List of targets needs at least {n} members'.format(n)
+            'List of targets needs at least {} members'.format(n)
         )
 
     def distance(t): return geom.distance(t)
