@@ -5,6 +5,7 @@ from shapely.geometry.collection import GeometryCollection
 
 class TestCommon(unittest.TestCase):
 
+# closest
     # Error case
     def test_closest_point_no_targets(self):
         geom = Point(0, 0)
@@ -151,6 +152,58 @@ class TestCommon(unittest.TestCase):
         targets2 = [Point(1, 1), Point(0, 0)]
         closest_geometry2 = common.closest(geom, targets2, 1)
         self.assertNotEqual(closest_geometry1, closest_geometry2)
+
+# -----------------------------------------------------------------------------
+
+# closest_within_radius
+    def test_closest_within_radius_point_within_radius(self):
+        geom = Point(0, 0)
+        targets = [Point(1, 1)]
+        closest_geometry = common.closest_within_radius(geom, targets, 10, 1)
+        self.assertEqual(closest_geometry, Point(1, 1))
+
+    def test_closest_within_radius_point_outside_radius(self):
+        geom = Point(0, 0)
+        targets = [Point(100, 100)]
+        closest_geometry = common.closest_within_radius(geom, targets, 10, 1)
+        self.assertEqual(closest_geometry, None)
+
+    def test_closest_within_radius_point_exactly_on_radius(self):
+        geom = Point(0, 0)
+        targets = [Point(10, 0)]
+        closest_geometry = common.closest_within_radius(geom, targets, 10, 1)
+        self.assertEqual(closest_geometry, Point(10, 0))
+    
+    def test_closest_within_radius_point_just_outside_radius(self):
+        geom = Point(0, 0)
+        targets = [Point(10, 0.000001)]
+        closest_geometry = common.closest_within_radius(geom, targets, 10, 1)
+        self.assertEqual(closest_geometry, None)
+
+# second closest
+    def test_closest_within_radius_second_point_within_radius(self):
+        geom = Point(0, 0)
+        targets = [Point(0, 0), Point(1, 1)]
+        closest_geometry = common.closest_within_radius(geom, targets, 10, 2)
+        self.assertEqual(closest_geometry, Point(1, 1))
+
+    def test_closest_within_radius_second_point_outside_radius(self):
+        geom = Point(0, 0)
+        targets = [Point(0, 0), Point(100, 100)]
+        closest_geometry = common.closest_within_radius(geom, targets, 10, 2)
+        self.assertEqual(closest_geometry, None)
+
+    def test_closest_within_radius_second_point_exactly_on_radius(self):
+        geom = Point(0, 0)
+        targets = [Point(0, 0), Point(10, 0)]
+        closest_geometry = common.closest_within_radius(geom, targets, 10, 2)
+        self.assertEqual(closest_geometry, Point(10, 0))
+    
+    def test_closest_within_radius_second_point_just_outside_radius(self):
+        geom = Point(0, 0)
+        targets = [Point(0, 0), Point(10, 0.000001)]
+        closest_geometry = common.closest_within_radius(geom, targets, 10, 2)
+        self.assertEqual(closest_geometry, None)
 
 if __name__ == '__main__':
     unittest.main()
