@@ -198,12 +198,80 @@ class TestCommon(unittest.TestCase):
         targets = [Point(0, 0), Point(10, 0)]
         closest_geometry = common.closest_within_radius(geom, targets, 10, 2)
         self.assertEqual(closest_geometry, Point(10, 0))
-    
+
     def test_closest_within_radius_second_point_just_outside_radius(self):
         geom = Point(0, 0)
         targets = [Point(0, 0), Point(10, 0.000001)]
         closest_geometry = common.closest_within_radius(geom, targets, 10, 2)
         self.assertEqual(closest_geometry, None)
+
+# -----------------------------------------------------------------------------
+
+# intersects
+
+    def test_intersects_different_points_dont_intersect(self):
+        geom1 = Point(0, 0)
+        geom2 = Point(1, 1)
+        intersects = common.intersects(geom1, geom2)
+        self.assertEqual(intersects, False)
+
+    def test_intersects_same_points_do_intersect(self):
+        geom1 = Point(0, 0)
+        geom2 = Point(0, 0)
+        intersects = common.intersects(geom1, geom2)
+        self.assertEqual(intersects, True)
+
+    def test_intersects_point_on_line_intersects(self):
+        geom1 = Point(1, 1)
+        geom2 = LineString([(0, 0), (2, 2)])
+        intersects = common.intersects(geom1, geom2)
+        self.assertEqual(intersects, True)
+
+    def test_intersects_point_on_end_of_line_intersects(self):
+        geom1 = Point(0, 0)
+        geom2 = LineString([(0, 0), (2, 2)])
+        intersects = common.intersects(geom1, geom2)
+        self.assertEqual(intersects, True)
+
+    def test_intersects_line_in_linear_ring_does_not_intersect(self):
+        geom1 = LineString([(1, 1), (3, 1)])
+        geom2 = LinearRing([(4, 2), (0, 2), (0, 0), (4, 0)])
+        intersects = common.intersects(geom1, geom2)
+        self.assertEqual(intersects, False)
+
+    def test_intersects_line_intersecting_linear_ring(self):
+        geom1 = LineString([(1, 1), (3, 1)])
+        geom2 = LinearRing([(2, 2), (0, 2), (0, 0), (2, 0)])
+        intersects = common.intersects(geom1, geom2)
+        self.assertEqual(intersects, True)
+
+    def test_intersects_line_in_polygon_intersects(self):
+        geom1 = LineString([(1, 1), (3, 1)])
+        geom2 = Polygon([(4, 2), (0, 2), (0, 0), (4, 0)])
+        intersects = common.intersects(geom1, geom2)
+        self.assertEqual(intersects, True)
+
+    def test_intersects_line_on_polygon_edge_intersects(self):
+        geom1 = LineString([(0, 0), (0, 2)])
+        geom2 = Polygon([(4, 2), (0, 2), (0, 0), (4, 0)])
+        intersects = common.intersects(geom1, geom2)
+        self.assertEqual(intersects, True)
+
+    def test_intersects_line_in_collection_of_points_does_not_intersect(self):
+        geom1 = LineString([(0.5, 0), (0.5, 1)])
+        geom2 = GeometryCollection([Point(0, 0), Point(0, 1), Point(1, 0), Point(1, 1)])
+        intersects = common.intersects(geom1, geom2)
+        self.assertEqual(intersects, False)
+
+    def test_intersects_line_in_mixed_collection_does_intersect(self):
+        geom1 = LineString([(0.5, 0), (0.5, 1)])
+        geom2 = GeometryCollection([Point(0, 0), LinearRing([(0, 1), (1, 0), (1, 1)])])
+        intersects = common.intersects(geom1, geom2)
+        self.assertEqual(intersects, True)
+
+# -----------------------------------------------------------------------------
+
+# closest_non_intersecting_within_radius
 
 if __name__ == '__main__':
     unittest.main()
