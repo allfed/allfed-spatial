@@ -13,7 +13,7 @@ class TestCommon(unittest.TestCase):
         failed = True
         with self.assertRaises(ValueError):
             closest_geometry = common.closest(geom, targets, 1)
-            failed = false
+            failed = False
         self.assertTrue(failed, "Expected an Error to be thrown")
 
 # Point
@@ -272,6 +272,48 @@ class TestCommon(unittest.TestCase):
 # -----------------------------------------------------------------------------
 
 # closest_non_intersecting_within_radius
+
+    def test_closest_non_intersecting_within_radius_nearest_point_no_intersect(self):
+        geom1 = Point(0, 0)
+        geom2 = Point(1, 2)
+        geomList3 = [Point(1, 1), Point(2, 2)]
+        closest = common.closest_non_intersecting_within_radius(geom1, geom2, geomList3, 10)
+        self.assertEqual(closest, Point(1, 1))
+
+    def test_closest_non_intersecting_within_radius_nearest_point_after_intersect(self):
+        geom1 = Point(0, 0)
+        geom2 = Polygon([(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5)])
+        geomList3 = [Point(1, 1), Point(2, 2)]
+        closest = common.closest_non_intersecting_within_radius(geom1, geom2, geomList3, 10)
+        self.assertEqual(closest, Point(2, 2))
+
+    def test_closest_non_intersecting_within_radius_nearest_point_after_intersect_outside_radius(self):
+        geom1 = Point(0, 0)
+        geom2 = Point(1, 1)
+        geomList3 = [Point(1, 1), Point(20, 20)]
+        closest = common.closest_non_intersecting_within_radius(geom1, geom2, geomList3, 10)
+        self.assertEqual(closest, None)
+
+    def test_closest_non_intersecting_within_radius_second_nearest_point_including_intersect(self):
+        geom1 = Point(0, 0)
+        geom2 = Point(2, 2)
+        geomList3 = [Point(1, 1), Point(2, 2), Point(3, 3)]
+        closest = common.closest_non_intersecting_within_radius(geom1, geom2, geomList3, 10, n=2)
+        self.assertEqual(closest, Point(3, 3))
+
+    def test_closest_non_intersecting_within_radius_nearest_point_all_intersect(self):
+        geom1 = Point(0, 0)
+        geom2 = Polygon([(0.5, 0.5), (0.5, 2.5), (2.5, 2.5), (2.5, 0.5)])
+        geomList3 = [Point(1, 1), Point(2, 2)]
+        closest = common.closest_non_intersecting_within_radius(geom1, geom2, geomList3, 10)
+        self.assertEqual(closest, None)
+
+    def test_closest_non_intersecting_within_radius_nearest_point_closest_counts_through_geom(self):
+        geom1 = Point(0, 0)
+        geom2 = LinearRing([(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5)])
+        geomList3 = [Point(1, 1), Point(2, 2)]
+        closest = common.closest_non_intersecting_within_radius(geom1, geom2, geomList3, 10)
+        self.assertEqual(closest, Point(1, 1))
 
 if __name__ == '__main__':
     unittest.main()
