@@ -3,11 +3,13 @@ from affine import Affine
 import numpy as np
 import pyproj
 from shapely.geometry import Point
+import geopandas as gpd
 
+from allfed_spatial.features.conversions import features_to_geodataframe
 from allfed_spatial.features.feature import Feature
 
 
-def raster_to_features(path):
+def raster_to_features(path: str) -> list:
     """ Convert each pixel in a raster to a Shapely Point located at that 
     pixels centroid, and give it a value attribute equal to the pixels value.
     Return these as a list of Features.
@@ -54,3 +56,16 @@ def raster_to_features(path):
         it.iternext()
 
     return features
+
+
+def raster_to_geodataframe(path: str) -> gpd.GeoDataFrame:
+    """
+    Convert a raster into a geodataframe of points at pixel centroids.
+
+    :param path: Path to raster file
+    :return: geodataframe with points at pixel values and attributes
+    describing that pixels value and area.
+    """
+    features = raster_to_features(path)
+    return features_to_geodataframe(features)
+
