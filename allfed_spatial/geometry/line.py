@@ -8,12 +8,12 @@ from allfed_spatial.geometry.common import closest
 
 
 def make_points_on_line(geom, distance):
-    """ Create points along a line at a fixed distance. Note that lines
-    w/points will not meet Shapely's intersection criteria due to the use of 
-    interpolate.
+    """ Create points evenly distributed along a line at a fixed distance.
+    Note that lines w/points will not meet Shapely's intersection criteria
+    due to the use of interpolate.
 
     Arguments:
-        geom {LineString|MultiLineString} -- geom to create pointsa long
+        geom {LineString|MultiLineString} -- geom to create points along
         distance {int|float} -- distance in metres along line to split
 
     Returns:
