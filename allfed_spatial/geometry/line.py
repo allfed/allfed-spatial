@@ -30,7 +30,7 @@ def make_points_on_line(geom, distance):
     elif geom.geom_type == 'MultiLineString':
         parts = [make_points_on_line(part, distance)
                  for part in geom]
-        return type(geom)([p for p in parts if not p.is_empty])
+        return [point for part in parts for point in part]
     else:
         raise ValueError('unhandled geometry %s', (geom.geom_type,))
 
