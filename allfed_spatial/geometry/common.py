@@ -1,6 +1,6 @@
 
 def closest(geom, targets, n=1):
-    """ Finds the `n`th closest geometry to geom within targets.
+    """ Finds the `n`th closest geometry to geom from a set of targets.
     For example, if n=2, finds the member of targets which is the 2nd closest 
     to geom. 
 
@@ -24,11 +24,11 @@ def closest(geom, targets, n=1):
 
 
 def closest_within_radius(geom, targets, radius, n=1):
-    """Finds the `n`th closest geometry to geom within targets within a
-    defined radius of geom. For example, if n=2 and r=10, finds the member of
-    targets which is the 2nd closest to geom, which is also within 10m of
-    geom. If there are not `n` candidates from targets within the radius then 
-    None is returned.
+    """Finds the `n`th closest geometry to geom from a set of targets within 
+    or equal to a defined radius of geom. For example, if n=2 and r=10, finds 
+    the member of targets which is the 2nd closest to geom, which is also 
+    within or equal to 10m of geom. If there are not `n` candidates from 
+    targets within or equal to the radius then None is returned.
 
     Arguments:
         geom {Shapely geometry} -- A single Shapely geometry (e.g. Point)
@@ -40,7 +40,7 @@ def closest_within_radius(geom, targets, radius, n=1):
 
     Returns:
         Shapely geometry | None -- Member of targets which is `n`th closest
-            within the radius
+            within or equal to the radius
     """
     most_close = closest(geom, targets, n)
     if geom.distance(most_close) > radius:
@@ -50,7 +50,7 @@ def closest_within_radius(geom, targets, radius, n=1):
 
 def closest_non_intersecting_within_radius(
         geom, non_intersect_geom, targets, radius, n=1):
-    """ Finds the `n`th closest geometry to geom within targets within a
+    """Finds the `n`th closest geometry to geom from a set of targets within a
     defined radius of geom, which also does not intersect non_intersect_geom.
     See closest_within_radius for more info on radius condition.
 
