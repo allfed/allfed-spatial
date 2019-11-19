@@ -24,10 +24,31 @@ class LineBaseTest(unittest.TestCase):
             diff = dist1/dist2
             self.assertAlmostEqual(diff, 1, delta=0.0105, msg="lines are more than 1.05 percent different length")
 
-            self.PointEqual(Point(list(lines1[idx].coords)[0]), Point(list(lines2[idx].coords)[0]), diff=abs(dist1 - dist2))
-            self.PointEqual(Point(list(lines1[idx].coords)[-1]), Point(list(lines2[idx].coords)[-1]), diff=abs(dist1 - dist2))
+            distDiff = abs(dist1 - dist2) * 1.05
+            self.PointEqual(Point(list(lines1[idx].coords)[0]), Point(list(lines2[idx].coords)[0]), diff=distDiff)
+            self.PointEqual(Point(list(lines1[idx].coords)[-1]), Point(list(lines2[idx].coords)[-1]), diff=distDiff)
 
-            # TODO: test line internal shape is consistent
+            self.assertLess(
+                geometry_line.frechet_distance(
+                    [Point(p) for p in lines1[idx].coords],
+                    [Point(p) for p in lines2[idx].coords]
+                ),
+                distDiff,
+                "line internal shape is significantly different")
+
+class Test_frechet_distance(LineBaseTest):
+    def test_frechet_distance(self):
+        points1 = [Point(0, 0), Point(0, 0.5), Point(0.5, 0.5), Point(1, 0.5), Point(1, 1)]
+        points2 = [Point(0, 0), Point(0, 0.5), Point(1, 0.5), Point(1, 1)]
+        distance = geometry_line.frechet_distance(points1, points2)
+        self.assertLess(distance, 0.01, "Expected lines to be effectively equal")
+
+    def test_lines_not_equivalent(self):
+        points1 = [Point(0, 0), Point(0, 0.5), Point(0.5, 0.5), Point(1, 0.5), Point(1, 1)]
+        points2 = [Point(0, 0), Point(0, 0.5), Point(0.5, 1), Point(1, 1)]
+        distance = geometry_line.frechet_distance(points1, points2)
+        self.assertLess(distance, 0.51, "Expected distance to be ~0.5")
+        self.assertGreater(distance, 0.49, "Expected lines to be ~0.5")
 
 class Test_make_points_on_line(LineBaseTest):
 

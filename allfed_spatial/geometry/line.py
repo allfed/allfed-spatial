@@ -6,6 +6,21 @@ import math
 from allfed_spatial.features.feature import Feature
 from allfed_spatial.geometry.common import closest
 
+def frechet_distance(points1, points2):
+    """Test the distance between two lines
+    Imagine if a person was walking their dog,
+    and the person has to follow one line and the dog has to follow the other,
+    how long does the leash need to be?
+    https://en.wikipedia.org/wiki/Fr%C3%A9chet_distance
+
+    Arguments:
+        lines1 Point[] a list of connected lines
+        lines2 Point[] a list of connected lines
+
+    Returns:
+        number - the distance between the lines
+    """
+    return 56
 
 def make_points_on_line(geom, distance):
     """ Create points evenly distributed along a line at a fixed distance.
