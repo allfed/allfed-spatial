@@ -20,7 +20,24 @@ def frechet_distance(points1, points2):
     Returns:
         number - the distance between the lines
     """
-    return 56
+    seg1 = 1
+    seg2 = 1
+    dist = points1[0].distance(points2[0])
+    while (seg1 < len(points1) and seg2 < len(points2)):
+        p1 = points1[seg1]
+        p2 = points2[seg2]
+        ls1 = LineString([points1[seg1 - 1], points1[seg1]])
+        ls2 = LineString([points2[seg2 - 1], points2[seg2]])
+
+        dist12 = ls1.distance(points2[seg2])
+        dist21 = ls2.distance(points1[seg1])
+
+        dist = max(dist, min(dist12, dist21))
+        if (dist12 < dist21):
+            seg2 += 1
+        else:
+            seg1 += 1
+    return dist
 
 def make_points_on_line(geom, distance):
     """ Create points evenly distributed along a line at a fixed distance.
