@@ -50,6 +50,13 @@ class Test_frechet_distance(LineBaseTest):
         self.assertLess(distance, 0.51, "Expected distance to be ~0.5")
         self.assertGreater(distance, 0.49, "Expected lines to be ~0.5")
 
+    def test_longer_lines(self):
+        points1 = [Point(1, 0), Point(1, 1), Point(1, 2), Point(1, 3), Point(1, 4)]
+        points2 = [Point(0, 0), Point(0, -2), Point(2, -2), Point(2, 0), Point(4, 0)]
+        distance = geometry_line.frechet_distance(points1, points2)
+        self.assertLess(distance, 3.01, "Expected distance to be ~0.5")
+        self.assertGreater(distance, 2.99, "Expected lines to be ~0.5")
+
 class Test_make_points_on_line(LineBaseTest):
 
     def test_not_a_line(self):
