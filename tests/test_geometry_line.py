@@ -35,10 +35,10 @@ class LineBaseTest(unittest.TestCase):
             self.assertAlmostEqual(
                 diff,
                 1,
-                delta=0.0105,
-                msg="lines are more than 1.05 percent different length")
+                delta=0.02,
+                msg="lines are more than 2 percent different length")
 
-            distDiff = abs(dist1 - dist2) * 1.05
+            distDiff = max(abs(dist1 - dist2), max(dist1, dist2) / 100) * 1.5
             self.PointEqual(
                 Point(list(lines1[idx].coords)[0]),
                 Point(list(lines2[idx].coords)[0]),
@@ -257,7 +257,67 @@ class Test_split_line_by_distance(LineBaseTest):
         splitLines = geometry_line.split_line_by_distance(line, distance)
         self.LinesEquivalent(
             splitLines,
-            [LineString([(0, 0), (0, 0.5)]), LineString([(0, 0.5), (0, 1)])])
+            [
+                LineString([(0, 0), (0, 0.5)]),
+                LineString([(0, 0.5), (0, 1)])
+            ])
+
+    def test_more_than_halve_a_line(self):
+        line = LineString([Point(0, 0), Point(0, 1)])
+        distance = 0.4
+        splitLines = geometry_line.split_line_by_distance(line, distance)
+        self.LinesEquivalent(
+            splitLines,
+            [
+                LineString([(0, 0), (0, 0.333)]),
+                LineString([(0, 0.333), (0, 0.666)]),
+                LineString([(0, 0.666), (0, 1)])
+            ])
+
+    def test_less_than_halve_a_line(self):
+        line = LineString([Point(0, 0), Point(0, 1)])
+        distance = 0.7
+        splitLines = geometry_line.split_line_by_distance(line, distance)
+        self.LinesEquivalent(
+            splitLines,
+            [
+                LineString([(0, 0), (0, 0.5)]),
+                LineString([(0, 0.5), (0, 1)])
+            ])
+
+    def test_halve_a_multi_point_line(self):
+        line = LineString([Point(0, 0), Point(0, 1), Point(1, 1)])
+        distance = 1
+        splitLines = geometry_line.split_line_by_distance(line, distance)
+        self.LinesEquivalent(
+            splitLines,
+            [
+                LineString([(0, 0), (0, 1)]),
+                LineString([(0, 1), (1, 1)])
+            ])
+
+    def test_more_than_halve_a_multi_point_line(self):
+        line = LineString([Point(0, 0), Point(0, 1), Point(1, 1)])
+        distance = 0.8
+        splitLines = geometry_line.split_line_by_distance(line, distance)
+        self.LinesEquivalent(
+            splitLines,
+            [
+                LineString([(0, 0), (0, 0.666)]),
+                LineString([(0, 0.666), (0, 1), (0.333, 1)]),
+                LineString([(0.333, 1), (1, 1)])
+            ])
+
+    def test_less_than_halve_a_multi_point_line(self):
+        line = LineString([Point(0, 0), Point(0, 1), Point(1, 1)])
+        distance = 1.4
+        splitLines = geometry_line.split_line_by_distance(line, distance)
+        self.LinesEquivalent(
+            splitLines,
+            [
+                LineString([(0, 0), (0, 1)]),
+                LineString([(0, 1), (1, 1)])
+            ])
 
 class Test_split_features_by_distance(LineBaseTest):
     pass

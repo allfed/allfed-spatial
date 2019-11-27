@@ -30,13 +30,12 @@ def frechet_distance(points1, points2):
     line2 = LineString(points2)
 
     maxDist = points1[0].distance(points2[0])
-    progress = 0.0
     line1PointIndex = 1
     line2PointIndex = 1
     line1PrevSegLength = 0.0
     line2PrevSegLength = 0.0
 
-    while (progress < 1):
+    while (line1PointIndex < len(points1) and line2PointIndex < len(points2)):
         line1Seg = LineString([
             points1[line1PointIndex - 1],
             points1[line1PointIndex]
@@ -50,7 +49,6 @@ def frechet_distance(points1, points2):
         line2NextSegLength = line2Seg.length + line2PrevSegLength
 
         if (line1NextSegLength == line2NextSegLength):
-            progress = line1NextSegLength / line1.length
             maxDist = max(
                 maxDist,
                 points1[line1PointIndex].distance(points2[line2PointIndex]))
@@ -60,7 +58,6 @@ def frechet_distance(points1, points2):
             line2PrevSegLength = line2NextSegLength
         else:
             if (line1NextSegLength < line2NextSegLength):
-                progress = line1NextSegLength / line1.length
                 line2Implicit = line2Seg.interpolate(
                     line2Seg.length - (line2NextSegLength - line1NextSegLength),
                     normalized = False)
@@ -70,7 +67,6 @@ def frechet_distance(points1, points2):
                 line1PointIndex += 1
                 line1PrevSegLength = line1NextSegLength
             else:
-                progress = line2NextSegLength / line2.length
                 line1Implicit = line1Seg.interpolate(
                     line1Seg.length - (line1NextSegLength - line2NextSegLength),
                     normalized = False)
