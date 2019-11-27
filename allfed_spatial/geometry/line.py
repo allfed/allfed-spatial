@@ -7,6 +7,65 @@ from allfed_spatial.features.feature import Feature
 from allfed_spatial.geometry.common import closest
 
 
+def frechet_distance(self, points1, points2):
+    """Test the distance between two lines
+    Imagine if a person was walking their dog,
+    and the person has to follow one line and the dog has to follow the other,
+    how long does the leash need to be?
+    https://en.wikipedia.org/wiki/Fr%C3%A9chet_distance
+
+    Arguments:
+        lines1 Point[] a list of connected lines
+        lines2 Point[] a list of connected lines
+
+    Returns:
+        number - the distance between the lines
+    """
+    # greedy implementation of moving along each line at the same proportional speed
+    # so compare distance at 20% along line 1 with distance 20% along line 2
+    # here we're just checking each point on both lines with the implicit point on the other line
+
+    line1 = LineString(points1)
+    line2 = LineString(points2)
+
+    maxDist = points1[0].distance(points2[0])
+    progress = 0.0
+    line1PointIndex = 1
+    line2PointIndex = 1
+    line1PrevSegLength = 0.0
+    line2PrevSegLength = 0.0
+
+    while (progress < 1):
+        line1SegLength = points1[line1PointIndex - 1].distance(points1[line1PointIndex])
+        line2SegLength = points2[line2PointIndex - 1].distance(points2[line2PointIndex])
+
+        line1NextSegLength = line1SegLength + line1PrevSegLength
+        line2NextSegLength = line2SegLength + line2PrevSegLength
+
+        if (line1NextSegLength == line2NextSegLength):
+            progress = line1NextSegLength / line1.length
+            maxDist = max(maxDist, points1[line1PointIndex].distance(points2[line2PointIndex]))
+            line1PointIndex += 1
+            line2PointIndex += 1
+            line1PrevSegLength = line1NextSegLength
+            line2PrevSegLength = line2NextSegLength
+        else:
+            if (line1NextSegLength < line2NextSegLength):
+                progress = line1NextSegLength / line1.length
+                line2Implicit = LineString([points2[line2PointIndex - 1], points2[line2PointIndex]]).interpolate(line2SegLength - (line2NextSegLength - line1NextSegLength), normalized = False)
+                maxDist = max(maxDist, points1[line1PointIndex].distance(line2Implicit))
+                line1PointIndex += 1
+                line1PrevSegLength = line1NextSegLength
+            else:
+                progress = line2NextSegLength / line2.length
+                line1Implicit = LineString([points1[line1PointIndex - 1], points1[line1PointIndex]]).interpolate(line1SegLength - (line1NextSegLength - line2NextSegLength), normalized = False)
+                maxDist = max(maxDist, points2[line2PointIndex].distance(line1Implicit))
+                line2PointIndex += 1
+                line2PrevSegLength = line2NextSegLength
+
+    return maxDist
+
+
 def make_points_on_line(geom, distance):
     """ Create points evenly distributed along a line at a fixed distance.
     Note that lines w/points will not meet Shapely's intersection criteria
