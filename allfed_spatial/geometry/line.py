@@ -21,8 +21,8 @@ def frechet_distance(points1, points2):
     with the implicit point on the other line.
 
     Arguments:
-        lines1 Point[] a list of connected lines
-        lines2 Point[] a list of connected lines
+        points1 {list} -- a list of points
+        points2 {list} -- a list of points
 
     Returns:
         number - the distance between the lines
