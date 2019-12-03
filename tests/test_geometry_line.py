@@ -25,14 +25,21 @@ class LineBaseTest(unittest.TestCase):
     def LineEquivalent(self, line1, line2):
         dist1 = line1.length
         dist2 = line2.length
-        diff = dist1/dist2
+        if (dist2 != 0):
+            diff = dist1/dist2
+        elif (dist1 == 0):
+            diff = 1
+        else:
+            diff = float("inf")
         self.assertAlmostEqual(
             diff,
             1,
             delta=0.02,
             msg="lines are more than 2 percent different length")
 
-        distDiff = max(abs(dist1 - dist2), max(dist1, dist2) / 100) * 1.5
+        distDiff = max(
+            max(abs(dist1 - dist2), max(dist1, dist2) / 100) * 1.5,
+            0.000001)
         self.PointEqual(
             Point(list(line1.coords)[0]),
             Point(list(line2.coords)[0]),
@@ -389,8 +396,58 @@ class Test_split_features_by_distance(LineBaseTest):
         ])
 
 class Test_join_points_to_lines(LineBaseTest):
-    pass
+    def test_no_points_no_lines(self):
+        points = []
+        lines = []
+        result = geometry_line.join_points_to_lines(points, lines)
+        self.PointsEqual(result, [])
 
+    def test_no_points_one_line(self):
+        points = []
+        lines = [LineString([(0, 0), (0, 1)])]
+        result = geometry_line.join_points_to_lines(points, lines)
+        self.PointsEqual(result, [])
+
+    def test_one_point_one_line(self):
+        points = [Point(1, 0.5)]
+        lines = [LineString([(0, 0), (0, 2)])]
+        result = geometry_line.join_points_to_lines(points, lines)
+        self.LinesEquivalent(result, [
+            LineString([(1, 0.5), (0, 0)])
+        ])
+
+    def test_one_point_two_lines_prioritizes_points(self):
+        points = [Point(1, 0.5)]
+        lines = [LineString([(0, 0), (0, 2)]), LineString([(1, -1), (1, 2)])]
+        result = geometry_line.join_points_to_lines(points, lines)
+        self.LinesEquivalent(result, [
+            LineString([(1, 0.5), (0, 0)])
+        ])
+
+    def test_multiple_points_multiple_lines(self):
+        points = [
+            Point(0, 1.5),
+            Point(1, -1.5),
+            Point(0.5, -2), # checking interior points
+            Point(2.5, 0.5),
+            Point(0, -4),
+            Point(0, -4), # checking duplicates
+        ]
+        lines = [
+            LineString([(0, 0), (0, 2)]),
+            LineString([(1, -1), (1, 2)]),
+            LineString([(0, 0), (0, -2), (0, -4)]),
+            LineString([(1, 0), (2, 0)]),
+        ]
+        result = geometry_line.join_points_to_lines(points, lines)
+        self.LinesEquivalent(result, [
+            LineString([(0, 1.5), (0, 2)]),
+            LineString([(1, -1.5), (1, -1)]),
+            LineString([(0.5, -2), (1, -1)]), # interior points aren't used
+            LineString([(2.5, 0.5), (2, 0)]),
+            LineString([(0, -4), (0, -4)]),
+            LineString([(0, -4), (0, -4)]), # duplicates are fine
+        ])
 
 if __name__ == '__main__':
     unittest.main()
