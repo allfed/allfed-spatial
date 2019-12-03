@@ -26,36 +26,35 @@ class LineBaseTest(unittest.TestCase):
         dist1 = line1.length
         dist2 = line2.length
         if (dist2 != 0):
-            diff = dist1/dist2
+            ratio = dist1/dist2
         elif (dist1 == 0):
-            diff = 1
+            ratio = 1
         else:
-            diff = float("inf")
+            ratio = float("inf")
         self.assertAlmostEqual(
-            diff,
+            ratio,
             1,
             delta=0.02,
             msg="lines are more than 2 percent different length")
 
-        distDiff = max(
-            max(abs(dist1 - dist2), max(dist1, dist2) / 100) * 1.5,
-            0.000001)
+        distance_diff = max(max(dist1, dist2) * 0.015, 0.000001)
+
         self.PointEqual(
             Point(list(line1.coords)[0]),
             Point(list(line2.coords)[0]),
-            diff=distDiff)
+            diff=distance_diff)
         self.PointEqual(
             Point(list(line1.coords)[-1]),
             Point(list(line2.coords)[-1]),
-            diff=distDiff)
+            diff=distance_diff)
 
         f_distance = geometry_line.frechet_distance(
             [Point(p) for p in line1.coords],
             [Point(p) for p in line2.coords])
         self.assertLess(
             f_distance,
-            distDiff,
-            "line internal shape is significantly different")
+            distance_diff,
+            "line is significantly different")
 
     def LinesEquivalent(self, lines1, lines2):
         if (lines1 == None or lines2 == None):
@@ -122,12 +121,11 @@ class Test_frechet_distance(LineBaseTest):
         self.assertLess(
             distance,
             0.67,
-            "Distance approximation is getting too high to be useful, " +
-            "expected ~0.66")
+            "Distance approximation is too high to be useful, expected ~0.66")
         self.assertGreaterEqual(
             distance,
             0.5,
-            "Expected distance to be at least 0.5 (the minimum distance)")
+            "Expected distance to be at least 0.5 (minimum possible distance)")
 
     def test_longer_lines(self):
         points1 = [
@@ -151,13 +149,12 @@ class Test_frechet_distance(LineBaseTest):
         distance = geometry_line.frechet_distance(points1, points2)
         self.assertLess(
             distance,
-            6.09,
-            "Distance approximation is getting too high to be useful, " +
-            "expected ~6.08")
+            5.37,
+            "Distance approximation is too high to be useful, expected ~5.36")
         self.assertGreaterEqual(
             distance,
             3,
-            "Expected distance to be at least 3 (the minimum distance)")
+            "Expected distance to be at least 3 (minimum possible distance)")
 
 class Test_make_points_on_line(LineBaseTest):
 

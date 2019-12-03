@@ -14,6 +14,12 @@ def frechet_distance(points1, points2):
     how long does the leash need to be?
     https://en.wikipedia.org/wiki/Fr%C3%A9chet_distance
 
+    Note:
+    Currently this is a greedy implementation of moving along each line at the
+    same proportional speed. So compare the point at 20% along line 1 with the
+    point at 20% along line 2. Here we're just checking each point on both lines
+    with the implicit point on the other line.
+
     Arguments:
         lines1 Point[] a list of connected lines
         lines2 Point[] a list of connected lines
@@ -21,15 +27,19 @@ def frechet_distance(points1, points2):
     Returns:
         number - the distance between the lines
     """
-    # greedy implementation of moving along each line at the same proportional
-    # speed. So compare distance at 20% along line 1 with distance 20% along
-    # line 2. Here we're just checking each point on both lines with the
-    # implicit point on the other line
 
     line1 = LineString(points1)
     line2 = LineString(points2)
+    line1Len = line1.length
+    line2Len = line2.length
+    if (line1Len == 0):
+        return max([points1[0].distance(p2) for p2 in points2])
+    if (line2Len == 0):
+        return max([points2[0].distance(p1) for p1 in points1])
 
-    maxDist = points1[0].distance(points2[0])
+    maxDist = max(
+        points1[0].distance(points2[0]),
+        points1[-1].distance(points2[-1]))
     line1PointIndex = 1
     line2PointIndex = 1
     line1PrevSegLength = 0.0
@@ -48,33 +58,24 @@ def frechet_distance(points1, points2):
         line1NextSegLength = line1Seg.length + line1PrevSegLength
         line2NextSegLength = line2Seg.length + line2PrevSegLength
 
-        if (line1NextSegLength == line2NextSegLength):
+        if ((line1NextSegLength / line1Len) < (line2NextSegLength / line2Len)):
+            line2Implicit = line2Seg.interpolate(
+                (line2Len * line1NextSegLength / line1Len) - line2PrevSegLength,
+                normalized = False)
             maxDist = max(
                 maxDist,
-                points1[line1PointIndex].distance(points2[line2PointIndex]))
+                points1[line1PointIndex].distance(line2Implicit))
             line1PointIndex += 1
-            line2PointIndex += 1
             line1PrevSegLength = line1NextSegLength
-            line2PrevSegLength = line2NextSegLength
         else:
-            if (line1NextSegLength < line2NextSegLength):
-                line2Implicit = line2Seg.interpolate(
-                    line2Seg.length - (line2NextSegLength - line1NextSegLength),
-                    normalized = False)
-                maxDist = max(
-                    maxDist,
-                    points1[line1PointIndex].distance(line2Implicit))
-                line1PointIndex += 1
-                line1PrevSegLength = line1NextSegLength
-            else:
-                line1Implicit = line1Seg.interpolate(
-                    line1Seg.length - (line1NextSegLength - line2NextSegLength),
-                    normalized = False)
-                maxDist = max(
-                    maxDist,
-                    points2[line2PointIndex].distance(line1Implicit))
-                line2PointIndex += 1
-                line2PrevSegLength = line2NextSegLength
+            line1Implicit = line1Seg.interpolate(
+                (line1Len * line2NextSegLength / line2Len) - line1PrevSegLength,
+                normalized = False)
+            maxDist = max(
+                maxDist,
+                points2[line2PointIndex].distance(line1Implicit))
+            line2PointIndex += 1
+            line2PrevSegLength = line2NextSegLength
 
     return maxDist
 
