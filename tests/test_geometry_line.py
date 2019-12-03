@@ -1,6 +1,7 @@
 import unittest
 import allfed_spatial.geometry.line as geometry_line
 from shapely.geometry import Point, LineString, MultiLineString
+from allfed_spatial.features.feature import Feature
 
 class LineBaseTest(unittest.TestCase):
 
@@ -21,6 +22,34 @@ class LineBaseTest(unittest.TestCase):
         for idx in range(len(points1)):
             self.PointEqual(points1[idx], points2[idx])
 
+    def LineEquivalent(self, line1, line2):
+        dist1 = line1.length
+        dist2 = line2.length
+        diff = dist1/dist2
+        self.assertAlmostEqual(
+            diff,
+            1,
+            delta=0.02,
+            msg="lines are more than 2 percent different length")
+
+        distDiff = max(abs(dist1 - dist2), max(dist1, dist2) / 100) * 1.5
+        self.PointEqual(
+            Point(list(line1.coords)[0]),
+            Point(list(line2.coords)[0]),
+            diff=distDiff)
+        self.PointEqual(
+            Point(list(line1.coords)[-1]),
+            Point(list(line2.coords)[-1]),
+            diff=distDiff)
+
+        f_distance = geometry_line.frechet_distance(
+            [Point(p) for p in line1.coords],
+            [Point(p) for p in line2.coords])
+        self.assertLess(
+            f_distance,
+            distDiff,
+            "line internal shape is significantly different")
+
     def LinesEquivalent(self, lines1, lines2):
         if (lines1 == None or lines2 == None):
             self.fail("provided None as lines")
@@ -29,32 +58,23 @@ class LineBaseTest(unittest.TestCase):
             len(lines2),
             msg="different number of lines")
         for idx in range(len(lines1)):
-            dist1 = lines1[idx].length
-            dist2 = lines2[idx].length
-            diff = dist1/dist2
-            self.assertAlmostEqual(
-                diff,
-                1,
-                delta=0.02,
-                msg="lines are more than 2 percent different length")
+            self.LineEquivalent(lines1[idx], lines2[idx])
 
-            distDiff = max(abs(dist1 - dist2), max(dist1, dist2) / 100) * 1.5
-            self.PointEqual(
-                Point(list(lines1[idx].coords)[0]),
-                Point(list(lines2[idx].coords)[0]),
-                diff=distDiff)
-            self.PointEqual(
-                Point(list(lines1[idx].coords)[-1]),
-                Point(list(lines2[idx].coords)[-1]),
-                diff=distDiff)
+    def FeaturesEqual(self, features1, features2):
+        if (features1 == None or features2 == None):
+            self.fail("provided None as features")
 
-            f_distance = geometry_line.frechet_distance(
-                [Point(p) for p in lines1[idx].coords],
-                [Point(p) for p in lines2[idx].coords])
-            self.assertLess(
-                f_distance,
-                distDiff,
-                "line internal shape is significantly different")
+        self.assertEqual(
+            len(features1),
+            len(features2),
+            msg="different number of features")
+
+        for idx in range(len(features1)):
+            self.LineEquivalent(features1[idx].geom, features2[idx].geom)
+            self.assertEqual(
+                features1[idx].data,
+                features2[idx].data,
+                "feature data is different")
 
 class Test_frechet_distance(LineBaseTest):
     def test_lines_equivalent(self):
@@ -320,7 +340,53 @@ class Test_split_line_by_distance(LineBaseTest):
             ])
 
 class Test_split_features_by_distance(LineBaseTest):
-    pass
+    def test_empty_list(self):
+        features = []
+        distance = 1
+        result = geometry_line.split_features_by_distance(features, distance)
+        self.FeaturesEqual(result, [])
+
+    def test_no_split(self):
+        test_data = {"this":"is", "a":"test", "testing":123}
+        test_line = LineString([(0, 0), (0, 1)])
+        features = [Feature(test_line, test_data)]
+        distance = 2
+        result = geometry_line.split_features_by_distance(features, distance)
+        self.FeaturesEqual(result, [Feature(test_line, test_data)])
+
+    def test_split_in_half(self):
+        test_data = {"this":"is", "a":"test", "testing":123}
+        test_line = LineString([(0, 0), (0, 1)])
+        features = [Feature(test_line, test_data)]
+        distance = 0.5
+        result = geometry_line.split_features_by_distance(features, distance)
+        self.FeaturesEqual(result, [
+            Feature(LineString([(0, 0), (0, 0.5)]), test_data),
+            Feature(LineString([(0, 0.5), (0, 1)]), test_data)
+        ])
+
+    def test_split_multiple_features(self):
+        test_data1 = {"this":"is", "a":"test", "testing":123}
+        test_line1 = LineString([(0, 0), (0, 1)])
+        test_data2 = {"thiss":"is", "another":"test", "testing":1234}
+        test_line2 = LineString([(0, 1), (0, 1.5)])
+        test_data3 = {"thisss":"is", "yet another":"test", "testing":1235}
+        test_line3 = LineString([(0, 1.5), (0, 3.75)])
+        features = [
+            Feature(test_line1, test_data1),
+            Feature(test_line2, test_data2),
+            Feature(test_line3, test_data3),
+        ]
+        distance = 0.75
+        result = geometry_line.split_features_by_distance(features, distance)
+        self.FeaturesEqual(result, [
+            Feature(LineString([(0, 0), (0, 0.5)]), test_data1),
+            Feature(LineString([(0, 0.5), (0, 1)]), test_data1),
+            Feature(LineString([(0, 1), (0, 1.5)]), test_data2),
+            Feature(LineString([(0, 1.5), (0, 2.25)]), test_data3),
+            Feature(LineString([(0, 2.25), (0, 3)]), test_data3),
+            Feature(LineString([(0, 3), (0, 3.75)]), test_data3)
+        ])
 
 class Test_join_points_to_lines(LineBaseTest):
     pass
