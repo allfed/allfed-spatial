@@ -8,10 +8,10 @@ from allfed_spatial.geometry.common import closest
 
 
 def frechet_distance(points1, points2):
-    """Test the distance between two lines
-    Imagine if a person was walking their dog,
-    and the person has to follow one line and the dog has to follow the other,
-    how long does the leash need to be?
+    """ Test the distance between two lines
+    Imagine if a person was walking their dog, and the person has to follow one
+    line and the dog has to follow the other, what is the length of the
+    shortest leash sufficient for both to traverse their separate paths?
     https://en.wikipedia.org/wiki/Fr%C3%A9chet_distance
 
     Note:

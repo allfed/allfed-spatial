@@ -4,6 +4,9 @@ from shapely.geometry import Point, LineString, MultiLineString
 from allfed_spatial.features.feature import Feature
 
 class LineBaseTest(unittest.TestCase):
+    """ Base test class containing equality checks, the checks have
+    a little flexibility since geometry manipulation isn't perfect.
+    """
 
     def PointEqual(self, p1, p2, diff=0.000001):
         self.assertAlmostEqual(
