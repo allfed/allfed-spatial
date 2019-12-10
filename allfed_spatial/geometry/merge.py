@@ -7,6 +7,12 @@ def merge_features(features):
     """ Merge feature geometries together where possible, forming several
     contiguous MultiLineStrings. Applies data of first feature to all.
 
+    Note:
+    - ordering of loops seems to be somewhat arbitary
+    - ordering of crossing loops is unpredictable
+    - touching loops don't seem to join
+    avoid loops if feasible.
+
     Arguments:
         features {list} -- list of Features
     """
