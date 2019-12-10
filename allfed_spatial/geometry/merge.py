@@ -10,6 +10,10 @@ def merge_features(features):
     Arguments:
         features {list} -- list of Features
     """
+
+    if (features == None or len(features) < 1):
+        raise ValueError('List of features needs at least 1 member')
+
     merged_features = []
     merged_geoms = linemerge([f.geom for f in features])
 
