@@ -9,11 +9,8 @@ class Test_closest(unittest.TestCase):
     def test_point_no_targets(self):
         geom = Point(0, 0)
         targets = []
-        failed = True
         with self.assertRaises(ValueError):
             closest_geometry = common.closest(geom, targets, 1)
-            failed = False
-        self.assertTrue(failed, "Expected an Error to be thrown")
 
     # Point
     def test_point_one_target(self):
@@ -207,11 +204,8 @@ class Test_closest_within_radius(unittest.TestCase):
     def test_requesting_third_of_two_targets_throws(self):
         geom = Point(0, 0)
         targets = [Point(1, 1), Point(2, 2)]
-        failed = True
         with self.assertRaises(ValueError):
             closest_geometry = common.closest_within_radius(geom, targets, 10, 3)
-            failed = False
-        self.assertTrue(failed, "Expected an Error to be thrown")
 
 class Test_intersects(unittest.TestCase):
 
@@ -337,11 +331,8 @@ class Test_closest_non_intersecting_within_radius(unittest.TestCase):
         geom = Point(0, 0)
         non_intersect_geom = Point(1, 1)
         targets = [Point(1, 1), Point(2, 2), Point(3, 3)]
-        failed = True
         with self.assertRaises(ValueError):
             closest = common.closest_non_intersecting_within_radius(geom, non_intersect_geom, targets, 10, n=3)
-            failed = False
-        self.assertTrue(failed, "Expected an Error to be thrown")
 
 if __name__ == '__main__':
     unittest.main()
