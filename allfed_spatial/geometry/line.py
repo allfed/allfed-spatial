@@ -59,8 +59,10 @@ def frechet_distance(points1, points2):
         line2NextSegLength = line2Seg.length + line2PrevSegLength
 
         if ((line1NextSegLength / line1Len) < (line2NextSegLength / line2Len)):
+            line2DistFromLine1 = (line2Len * line1NextSegLength / line1Len)
+            line2DistanceToImplicit = line2DistFromLine1 - line2PrevSegLength
             line2Implicit = line2Seg.interpolate(
-                (line2Len * line1NextSegLength / line1Len) - line2PrevSegLength,
+                max(line2DistanceToImplicit, 0),
                 normalized = False)
             maxDist = max(
                 maxDist,
@@ -68,8 +70,10 @@ def frechet_distance(points1, points2):
             line1PointIndex += 1
             line1PrevSegLength = line1NextSegLength
         else:
+            line1DistFromLine2 = (line1Len * line2NextSegLength / line2Len)
+            line1DistanceToImplicit = line1DistFromLine2 - line1PrevSegLength
             line1Implicit = line1Seg.interpolate(
-                (line1Len * line2NextSegLength / line2Len) - line1PrevSegLength,
+                max(line1DistanceToImplicit, 0),
                 normalized = False)
             maxDist = max(
                 maxDist,

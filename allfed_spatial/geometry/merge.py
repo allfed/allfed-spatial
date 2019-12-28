@@ -7,9 +7,19 @@ def merge_features(features):
     """ Merge feature geometries together where possible, forming several
     contiguous MultiLineStrings. Applies data of first feature to all.
 
+    Note:
+    - ordering of loops seems to be somewhat arbitary
+    - ordering of crossing loops is unpredictable
+    - touching loops don't seem to join
+    avoid loops if feasible.
+
     Arguments:
         features {list} -- list of Features
     """
+
+    if (features == None or len(features) < 1):
+        raise ValueError('List of features needs at least 1 member')
+
     merged_features = []
     merged_geoms = linemerge([f.geom for f in features])
 
