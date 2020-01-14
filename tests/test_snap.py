@@ -1,6 +1,7 @@
+import rtree
 import unittest
 import allfed_spatial.geometry.snap as geometry_snap
-from shapely.geometry import LineString
+from shapely.geometry import Point, LineString, Polygon
 from allfed_spatial.features.feature import Feature
 from tests.test_geometry_line import LineBaseTest
 
@@ -175,3 +176,99 @@ class Test_snap_linestrings(LineBaseTest):
 			LineString([(-2.5, -2.5), (0, 0), (100, 100)]),
 			LineString([(-5, 0), (0, -5)])
 		])
+
+class Test_intersects_with_index(unittest.TestCase):
+	def test_no_geoms_None(self):
+		geoms = []
+		geomIdx = -1
+		index = rtree.index.Index()
+		for idx, geom in enumerate(geoms):
+			index.insert(idx, geom)
+		with self.assertRaises(AttributeError):
+			geometry_snap.intersects_with_index(geomIdx, index, None, geoms)
+
+	def test_no_geoms_not_None(self):
+		geoms = []
+		geomIdx = -1
+		index = rtree.index.Index()
+		for idx, geom in enumerate(geoms):
+			index.insert(idx, geom)
+		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, Point(0, 0), geoms), False)
+
+	def test_one_geom(self):
+		geoms = [
+			Point(0, 0)
+		]
+		geomIdx = 0
+		index = rtree.index.Index()
+		for idx, geom in enumerate(geoms):
+			index.insert(idx, geom.bounds)
+		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, geoms[geomIdx], geoms), False)
+
+	def test_two_geoms_no_overlap(self):
+		geoms = [
+			Point(0, 0),
+			Point(1, 1)
+		]
+		index = rtree.index.Index()
+		for idx, geom in enumerate(geoms):
+			index.insert(idx, geom.bounds)
+
+		geomIdx = 0
+		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, geoms[geomIdx], geoms), False)
+		geomIdx = 1
+		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, geoms[geomIdx], geoms), False)
+
+	def test_two_geoms_overlap(self):
+		geoms = [
+			Point(0, 0),
+			Point(0, 0)
+		]
+		index = rtree.index.Index()
+		for idx, geom in enumerate(geoms):
+			index.insert(idx, geom.bounds)
+
+		geomIdx = 0
+		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, geoms[geomIdx], geoms), True)
+		geomIdx = 1
+		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, geoms[geomIdx], geoms), True)
+
+	def test_two_geoms_no_overlap_when_nested(self):
+		geoms = [
+			Point(0, 0),
+			LineString([(-1, -1), (1, -1), (1, 1), (-1, 1), (-1, -1)])
+		]
+		index = rtree.index.Index()
+		for idx, geom in enumerate(geoms):
+			index.insert(idx, geom.bounds)
+
+		geomIdx = 0
+		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, geoms[geomIdx], geoms), False)
+		geomIdx = 1
+		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, geoms[geomIdx], geoms), False)
+
+	def test_two_geoms_overlap_when_Polgon(self):
+		geoms = [
+			Point(0, 0),
+			Polygon([(-1, -1), (1, -1), (1, 1), (-1, 1), (-1, -1)])
+		]
+		index = rtree.index.Index()
+		for idx, geom in enumerate(geoms):
+			index.insert(idx, geom.bounds)
+
+		geomIdx = 0
+		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, geoms[geomIdx], geoms), True)
+		geomIdx = 1
+		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, geoms[geomIdx], geoms), True)
+
+	def test_two_geoms_but_bad_index(self):
+		geoms = [
+			Point(0, 0),
+			Point(0, 0)
+		]
+		index = rtree.index.Index()
+		for idx, geom in enumerate(geoms):
+			index.insert(0, geom.bounds)
+
+		geomIdx = 0
+		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, Point(0, 0), geoms), False)
