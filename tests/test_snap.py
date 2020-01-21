@@ -272,3 +272,184 @@ class Test_intersects_with_index(unittest.TestCase):
 
 		geomIdx = 0
 		self.assertEqual(geometry_snap.intersects_with_index(geomIdx, index, Point(0, 0), geoms), False)
+
+class Test_snap_features(LineBaseTest):
+	def test_no_features(self):
+		features = []
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.assertEqual(result, [])
+
+	def test_non_lines(self):
+		features = [
+			Feature(Polygon([(0, 0), (100, 0), (100, 100), (0, 100)]), { "t1": 2 }),
+			Feature(Polygon([(0, -100), (-100, -100), (-100, 0), (0, -5)]), { "t2": 3 })
+		]
+		radius = 10
+		with self.assertRaises(NotImplementedError):
+			result = geometry_snap.snap_features(radius, features)
+
+	def test_single_snap_start_to_end(self):
+		features = [
+			Feature(LineString([(0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, -100), (0, -5)]), { "t2": 3 })
+		]
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.FeaturesEqual(result, [
+			Feature(LineString([(0,-5), (0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, -100), (0, -5)]), { "t2": 3 })
+		])
+
+	def test_single_snap_end_to_start(self):
+		features = [
+			Feature(LineString([(100, 100), (0, 0)]), { "t1": 2 }),
+			Feature(LineString([(0, -5), (0, -100)]), { "t2": 3 })
+		]
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.FeaturesEqual(result, [
+			Feature(LineString([(100, 100), (0, 0), (0, -5)]), { "t1": 2 }),
+			Feature(LineString([(0, -5), (0, -100)]), { "t2": 3 })
+		])
+
+	def test_single_snap_start_to_start(self):
+		features = [
+			Feature(LineString([(0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, -5), (0, -100)]), { "t2": 3 })
+		]
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.FeaturesEqual(result, [
+			Feature(LineString([(0,-5), (0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, -5), (0, -100)]), { "t2": 3 })
+		])
+
+	def test_single_snap_end_to_end(self):
+		features = [
+			Feature(LineString([(100, 100), (0, 0)]), { "t1": 2 }),
+			Feature(LineString([(0, -100), (0, -5)]), { "t2": 3 })
+		]
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.FeaturesEqual(result, [
+			Feature(LineString([(100, 100), (0, 0), (0, -5)]), { "t1": 2 }),
+			Feature(LineString([(0, -100), (0, -5)]), { "t2": 3 })
+		])
+
+	def test_single_snap_start_to_middle(self):
+		features = [
+			Feature(LineString([(0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, -100), (0, -5), (100, -5)]), { "t2": 3 })
+		]
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.FeaturesEqual(result, [
+			Feature(LineString([(0, -5), (0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, -100), (0, -5), (100, -5)]), { "t2": 3 })
+		])
+
+	def test_single_snap_middle_to_end(self):
+		features = [
+			Feature(LineString([(100, 100), (0, 0), (0, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, -100), (0, -5)]), { "t2": 3 })
+		]
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.FeaturesEqual(result, [
+			Feature(LineString([(100, 100), (0, 0), (0, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, -100), (0, -5), (0, 0)]), { "t2": 3 })
+		])
+
+	def test_snap_prioritiezes_first_snap(self):
+		f1 = Feature(LineString([(0, 0), (100, 100)]), { "t1": 2 })
+		f2 = Feature(LineString([(0, -100), (0, -5)]), { "t2": 3 })
+		features1 = [
+			f1,
+			f2
+		]
+		features2 = [
+			f2,
+			f1
+		]
+		radius = 10
+		result1 = geometry_snap.snap_features(radius, features1)
+		result2 = geometry_snap.snap_features(radius, features2)
+		self.FeaturesEqual(result1, [
+			Feature(LineString([(0,-5), (0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, -100), (0, -5)]), { "t2": 3 })
+		])
+		self.FeaturesEqual(result2, [
+			Feature(LineString([(0, -100), (0, -5), (0, 0)]), { "t2": 3 }),
+			Feature(LineString([(0, 0), (100, 100)]), { "t1": 2 })
+		])
+
+	def test_multi_snap_with_central_point(self):
+		features = [
+			Feature(LineString([(0, 5), (0, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, -5), (0, -100)]), { "t2": 3 }),
+			Feature(LineString([(5, 0), (100, 0)]), { "t3": 4 }),
+			Feature(LineString([(-5, 0), (-100, 0)]), { "t4": 5 }),
+			Feature(LineString([(0, 0), (0, 0)]), { "t5": 6 })
+		]
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.FeaturesEqual(result, [
+			Feature(LineString([(0, 0), (0, 5), (0, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, 0), (0, -5), (0, -100)]), { "t2": 3 }),
+			Feature(LineString([(0, 0), (5, 0), (100, 0)]), { "t3": 4 }),
+			Feature(LineString([(0, 0), (-5, 0), (-100, 0)]), { "t4": 5 }),
+			Feature(LineString([(0, 0), (0, 0)]), { "t5": 6 })
+		])
+
+	def test_multi_snap_without_central_point(self):
+		features = [
+			Feature(LineString([(0, 5), (0, 100)]), { "t1": 2 }),
+			Feature(LineString([(0, -5), (0, -100)]), { "t2": 3 }),
+			Feature(LineString([(5, 0), (100, 0)]), { "t3": 4 }),
+			Feature(LineString([(-5, 0), (-100, 0)]), { "t4": 5 })
+		]
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.FeaturesEqual(result, [
+			Feature(LineString([(5, 0), (0, 5), (0, 100)]), { "t1": 2 }),
+			Feature(LineString([(-5, 0), (0, -5), (0, -100)]), { "t2": 3 }),
+			Feature(LineString([(5, 0), (100, 0)]), { "t3": 4 }),
+			Feature(LineString([(-5, 0), (-100, 0)]), { "t4": 5 })
+		])
+
+	def test_snap_both_ends(self):
+		features = [
+			Feature(LineString([(0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(100, 95), (5, 0)]), { "t2": 3 })
+		]
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.FeaturesEqual(result, [
+			Feature(LineString([(5, 0), (0, 0), (100, 100), (100, 95)]), { "t1": 2 }),
+			Feature(LineString([(100, 95), (5, 0)]), { "t2": 3 })
+		])
+
+	def test_no_snap_when_intersecting(self):
+		features = [
+			Feature(LineString([(0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(100, 105), (0, -5)]), { "t2": 3 })
+		]
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.FeaturesEqual(result, [
+			Feature(LineString([(0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(100, 105), (0, -5)]), { "t2": 3 })
+		])
+
+	def test_snap_to_non_point(self):
+		features = [
+			Feature(LineString([(0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(-5, 0), (0, -5)]), { "t2": 3 })
+		]
+		radius = 10
+		result = geometry_snap.snap_features(radius, features)
+		self.FeaturesEqual(result, [
+			Feature(LineString([(-2.5, -2.5), (0, 0), (100, 100)]), { "t1": 2 }),
+			Feature(LineString([(-5, 0), (0, -5)]), { "t2": 3 })
+		])
