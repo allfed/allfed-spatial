@@ -100,7 +100,7 @@ def snap_linestrings(r, lines):
 
             if len(e2_line_indices) > 0:
                 closest_line = closest_non_intersecting_within_radius(
-                    e1, geom, [lines[i] for i in e2_line_indices], r)
+                    e2, geom, [lines[i] for i in e2_line_indices], r)
                 new_e2_coords = [nearest_points(e2, closest_line)[
                     1].coords[0]] if closest_line else []
             else:

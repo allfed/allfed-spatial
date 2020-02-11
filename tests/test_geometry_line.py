@@ -69,6 +69,13 @@ class LineBaseTest(unittest.TestCase):
         for idx in range(len(lines1)):
             self.LineEquivalent(lines1[idx], lines2[idx])
 
+    def FeatureEqual(self, feature1, feature2):
+        self.LineEquivalent(feature1.geom, feature2.geom)
+        self.assertEqual(
+            feature1.data,
+            feature2.data,
+            "feature data is different")
+
     def FeaturesEqual(self, features1, features2):
         if (features1 == None or features2 == None):
             self.fail("provided None as features")
@@ -79,11 +86,7 @@ class LineBaseTest(unittest.TestCase):
             msg="different number of features")
 
         for idx in range(len(features1)):
-            self.LineEquivalent(features1[idx].geom, features2[idx].geom)
-            self.assertEqual(
-                features1[idx].data,
-                features2[idx].data,
-                "feature data is different")
+            self.FeatureEqual(features1[idx], features2[idx])
 
 class Test_frechet_distance(LineBaseTest):
     def test_lines_equivalent(self):
