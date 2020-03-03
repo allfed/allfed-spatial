@@ -1,4 +1,6 @@
 import fiona
+# Windows requires fiona 1.8.9+ (1.8.13 confirmed) and GDAL 3.0.2+ (3.0.4 confirmed)
+# This is because Fiona 1.8.9 adds support for GDAL 3 and rasterio requires GDAL 3
 from shapely.geometry import mapping, LineString, Polygon, Point, shape, MultiPolygon
 from fiona.crs import from_epsg
 
