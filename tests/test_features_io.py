@@ -133,5 +133,23 @@ class Test_get_feature_schema(unittest.TestCase):
 				{ "test": Point(0, 0) })
 			featureIO.get_feature_schema(feature)
 
+complete_test_data = {
+	"int": 123,
+	"float": 123.4,
+	"string": "this is a test string"
+}
+
+class Test_write_features(unittest.TestCase):
+	def test_line_string(self):
+		self.fail("test to be written")
+
+class Test_load_features(unittest.TestCase):
+	def test_line_string(self):
+		self.fail("test to be written")
+
+class Test_write_shape(unittest.TestCase):
+	def test_line_string(self):
+		self.fail("test to be written")
+
 if __name__ == '__main__':
 	unittest.main()
