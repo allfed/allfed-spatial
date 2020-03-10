@@ -1,3 +1,5 @@
+import os
+import tempfile
 import unittest
 import allfed_spatial.features.io as featureIO
 from shapely.geometry import LineString, LinearRing, MultiPolygon, Point, Polygon
@@ -133,15 +135,34 @@ class Test_get_feature_schema(unittest.TestCase):
 				{ "test": Point(0, 0) })
 			featureIO.get_feature_schema(feature)
 
-complete_test_data = {
+complete_test_data_1 = {
 	"int": 123,
 	"float": 123.4,
-	"string": "this is a test string"
+	"string": "this is a test string",
+	"uniqueKey": 1
+}
+
+complete_test_data_2 = {
+	"int": 123,
+	"float": 123.4,
+	"string": "this is a test string",
+	"uniqueKey": 2
 }
 
 class Test_write_features(unittest.TestCase):
 	def test_line_string(self):
-		self.fail("test to be written")
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.file")
+
+			feature1 = Feature(
+				LineString([(0, 0), (1, 1)]),
+				complete_test_data_1)
+			feature2 = Feature(
+				LineString([(2, 2), (3, 3)]),
+				complete_test_data_2)
+
+			featureIO.write_features([feature1, feature2], filename)
+			self.fail("test to be written")
 
 class Test_load_features(unittest.TestCase):
 	def test_line_string(self):
