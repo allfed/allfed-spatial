@@ -398,9 +398,145 @@ class Test_write_features(LineBaseTest):
 			self.assertEqual(featuresFromDisk[1].data["uniqueKey"], -(2**63))
 			self.assertTrue(math.isnan(featuresToDisk[1].data["uniqueKey"]))
 
-class Test_write_shape(unittest.TestCase):
+class Test_write_shape(LineBaseTest):
+
+	# test geometry
 	def test_line_string(self):
-		self.fail("test to be written")
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.file")
+
+			feature1 = Feature(
+				LineString([(0, 0), (1, 1)]),
+				complete_test_data_1)
+			feature2 = Feature(
+				LineString([(2, 2), (3, 3)]),
+				complete_test_data_2)
+
+			featuresToDisk = [feature1, feature2]
+
+			geoms = [f.geom for f in featuresToDisk]
+			data = [f.data for f in featuresToDisk]
+
+			schema = featureIO.get_feature_schema(featuresToDisk[0])
+
+			featureIO.write_shape(geoms, data, schema, filename)
+			featuresFromDisk = featureIO.load_features(filename)
+			self.FeaturesEqual(featuresFromDisk, featuresToDisk)
+
+	def test_point(self):
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.file")
+
+			feature1 = Feature(
+				Point(0, 0),
+				complete_test_data_1)
+			feature2 = Feature(
+				Point(1, 1),
+				complete_test_data_2)
+
+			featuresToDisk = [feature1, feature2]
+
+			geoms = [f.geom for f in featuresToDisk]
+			data = [f.data for f in featuresToDisk]
+
+			schema = featureIO.get_feature_schema(featuresToDisk[0])
+
+			featureIO.write_shape(geoms, data, schema, filename)
+			featuresFromDisk = featureIO.load_features(filename)
+			self.FeaturesEqual(featuresFromDisk, featuresToDisk)
+
+	def test_polygon(self):
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.file")
+
+			feature1 = Feature(
+				Polygon([(0, 0), (1, 1), (0, 1)]),
+				complete_test_data_1)
+			feature2 = Feature(
+				Polygon([(0, 0), (1, 1), (1, 0)]),
+				complete_test_data_2)
+
+			featuresToDisk = [feature1, feature2]
+
+			geoms = [f.geom for f in featuresToDisk]
+			data = [f.data for f in featuresToDisk]
+
+			schema = featureIO.get_feature_schema(featuresToDisk[0])
+
+			featureIO.write_shape(geoms, data, schema, filename)
+			featuresFromDisk = featureIO.load_features(filename)
+			self.FeaturesEqual(featuresFromDisk, featuresToDisk)
+
+	def test_multi_polygon(self):
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.file")
+
+			feature1 = Feature(
+				MultiPolygon([
+					Polygon([(0, 0), (1, 1), (0, 1)]),
+					Polygon([(0, 0), (1, 1), (1, 0)])]),
+				complete_test_data_1)
+			feature2 = Feature(
+				MultiPolygon([
+					Polygon([(1, 1), (2, 2), (1, 2)]),
+					Polygon([(1, 1), (2, 2), (2, 1)])]),
+				complete_test_data_2)
+
+			featuresToDisk = [feature1, feature2]
+
+			geoms = [f.geom for f in featuresToDisk]
+			data = [f.data for f in featuresToDisk]
+
+			schema = featureIO.get_feature_schema(featuresToDisk[0])
+
+			featureIO.write_shape(geoms, data, schema, filename)
+			featuresFromDisk = featureIO.load_features(filename)
+			self.FeaturesEqual(featuresFromDisk, featuresToDisk)
+
+	def test_other_geom(self):
+		"""Other geometry is silently lost, no exceptions stop the process"""
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.file")
+
+			feature1 = Feature(
+				LinearRing([(0, 0), (1, 1), (0, 1)]),
+				complete_test_data_1)
+
+			featuresToDisk = [feature1]
+
+			geoms = [f.geom for f in featuresToDisk]
+			data = [f.data for f in featuresToDisk]
+
+			schema = featureIO.get_feature_schema(featuresToDisk[0])
+
+			featureIO.write_shape(geoms, data, schema, filename)
+			featuresFromDisk = featureIO.load_features(filename)
+			self.assertEqual(featuresFromDisk, [])
+
+	def test_mixed_geom(self):
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.file")
+
+			feature1 = Feature(
+				LineString([(0, 0), (1, 1)]),
+				complete_test_data_1)
+			feature2 = Feature(
+				Point(20, 20),
+				complete_test_data_2)
+
+			featuresToDisk = [feature1, feature2]
+
+			geoms = [f.geom for f in featuresToDisk]
+			data = [f.data for f in featuresToDisk]
+
+			schema = featureIO.get_feature_schema(featuresToDisk[0])
+
+			with self.assertRaises(fiona.errors.GeometryTypeValidationError):
+				featureIO.write_shape(geoms, data, schema, filename)
+
+	# test data
+
+	# test bad/wierd schema?
 
 if __name__ == '__main__':
 	unittest.main()

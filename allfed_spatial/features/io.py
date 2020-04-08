@@ -106,7 +106,7 @@ def write_shape(geometries, data, schema, path):
         schema {dict} -- Fiona schema for data
         path {str} -- Path to write to
     """
-    output_driver = "GeoPackage"
+    output_driver = "GPKG"
 
     with fiona.open(
         path,
