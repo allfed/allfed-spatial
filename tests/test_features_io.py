@@ -535,8 +535,101 @@ class Test_write_shape(LineBaseTest):
 				featureIO.write_shape(geoms, data, schema, filename)
 
 	# test data
+	def test_data_mismatch(self):
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.file")
 
-	# test bad/wierd schema?
+			feature1 = Feature(
+				Point(0, 0),
+				complete_test_data_1)
+			feature2 = Feature(
+				Point(1, 1),
+				diff_schema_test_data)
+
+			featuresToDisk = [feature1, feature2]
+
+			geoms = [f.geom for f in featuresToDisk]
+			data = [f.data for f in featuresToDisk]
+
+			schema = featureIO.get_feature_schema(featuresToDisk[0])
+
+			with self.assertRaises(ValueError):
+				featureIO.write_shape(geoms, data, schema, filename)
+
+	def test_data_converts(self):
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.file")
+
+			feature1 = Feature(
+				Point(0, 0),
+				complete_test_data_1)
+			feature2 = Feature(
+				Point(1, 1),
+				diff_schema_convertable_string_test_data)
+
+			featuresToDisk = [feature1, feature2]
+
+			geoms = [f.geom for f in featuresToDisk]
+			data = [f.data for f in featuresToDisk]
+
+			schema = featureIO.get_feature_schema(featuresToDisk[0])
+
+			featureIO.write_shape(geoms, data, schema, filename)
+			featuresFromDisk = featureIO.load_features(filename)
+
+			modifiedFeaturesFromDisk = featureIO.load_features(filename)
+			modifiedFeaturesFromDisk[1].data["uniqueKey"] = "3"
+
+			self.assertNotEqual(featuresFromDisk[1].data["uniqueKey"], "3")
+			self.assertEqual(featuresFromDisk[1].data["uniqueKey"], 3)
+			self.FeaturesEqual(modifiedFeaturesFromDisk, featuresToDisk)
+
+	def test_data_unconvertable(self):
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.file")
+
+			feature1 = Feature(
+				Point(0, 0),
+				complete_test_data_1)
+			feature2 = Feature(
+				Point(1, 1),
+				diff_schema_unconvertable_string_test_data)
+
+			featuresToDisk = [feature1, feature2]
+
+			geoms = [f.geom for f in featuresToDisk]
+			data = [f.data for f in featuresToDisk]
+
+			schema = featureIO.get_feature_schema(featuresToDisk[0])
+
+			featureIO.write_shape(geoms, data, schema, filename)
+			featuresFromDisk = featureIO.load_features(filename)
+
+			modifiedFeaturesFromDisk = featureIO.load_features(filename)
+			modifiedFeaturesFromDisk[1].data["uniqueKey"] = "NaN"
+
+			self.assertNotEqual(featuresFromDisk[1].data["uniqueKey"], "NaN")
+			self.assertEqual(featuresFromDisk[1].data["uniqueKey"], 0)
+			self.FeaturesEqual(modifiedFeaturesFromDisk, featuresToDisk)
+
+	# test bad schema
+	def test_bad_schema(self):
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.file")
+
+			feature = Feature(
+				Point(0, 0),
+				complete_test_data_1)
+
+			featuresToDisk = [feature]
+
+			geoms = [f.geom for f in featuresToDisk]
+			data = [f.data for f in featuresToDisk]
+
+			schema = {"This is": "not a schema"}
+
+			with self.assertRaises(Exception):
+				featureIO.write_shape(geoms, data, schema, filename)
 
 if __name__ == '__main__':
 	unittest.main()
