@@ -378,8 +378,7 @@ class Test_write_features(LineBaseTest):
 		i.e. -(2**63), the minimum 64 bit int value
 		
 		odd given that we map to int:16,
-		TODO: maybe we should be mapping to int:64 instead,
-		we'll find out in the write_shape tests."""
+		TODO: maybe we should be mapping to int:64 instead"""
 		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
 			filename = os.path.join(tempdir, "testfile.file")
 
@@ -593,7 +592,7 @@ class Test_write_shape(LineBaseTest):
 				complete_test_data_1)
 			feature2 = Feature(
 				Point(1, 1),
-				diff_schema_unconvertable_string_test_data)
+				diff_schema_unconvertable_float_test_data)
 
 			featuresToDisk = [feature1, feature2]
 
@@ -606,10 +605,10 @@ class Test_write_shape(LineBaseTest):
 			featuresFromDisk = featureIO.load_features(filename)
 
 			modifiedFeaturesFromDisk = featureIO.load_features(filename)
-			modifiedFeaturesFromDisk[1].data["uniqueKey"] = "NaN"
+			modifiedFeaturesFromDisk[1].data["uniqueKey"] = math.nan
 
-			self.assertNotEqual(featuresFromDisk[1].data["uniqueKey"], "NaN")
-			self.assertEqual(featuresFromDisk[1].data["uniqueKey"], 0)
+			self.assertFalse(math.isnan(featuresFromDisk[1].data["uniqueKey"]))
+			self.assertEqual(featuresFromDisk[1].data["uniqueKey"], -(2**63))
 			self.FeaturesEqual(modifiedFeaturesFromDisk, featuresToDisk)
 
 	# test bad schema
