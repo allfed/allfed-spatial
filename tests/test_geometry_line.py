@@ -69,8 +69,24 @@ class LineBaseTest(unittest.TestCase):
         for idx in range(len(lines1)):
             self.LineEquivalent(lines1[idx], lines2[idx])
 
+    def GeomEquivalent(self, geom1, geom2):
+        self.assertEqual(geom1.type, geom2.type)
+        if (geom1.type == 'Point'):
+            self.PointEqual(geom1, geom2)
+        elif (geom1.type == 'LineString'):
+            self.LineEquivalent(geom1, geom2)
+        elif (geom1.type == 'Polygon'):
+            self.LineEquivalent(geom1.exterior, geom2.exterior)
+            self.LinesEquivalent(geom1.interiors, geom2.interiors)
+        elif (geom1.type.startswith('Multi')):
+            self.assertEqual(len(geom1.geoms), len(geom2.geoms))
+            for idx in range(0, len(geom1.geoms)):
+                self.GeomEquivalent(geom1.geoms[idx], geom2.geoms[idx])
+        else:
+            self.fail("Unhandled Geometry Type: " + geom1.type)
+
     def FeatureEqual(self, feature1, feature2):
-        self.LineEquivalent(feature1.geom, feature2.geom)
+        self.GeomEquivalent(feature1.geom, feature2.geom)
         self.assertEqual(
             feature1.data,
             feature2.data,
