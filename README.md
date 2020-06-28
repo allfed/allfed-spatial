@@ -25,7 +25,8 @@ You may then import any of the modules in this repo as normal, e.g.
 
 ### Development setup
 
-To set up dependencies for development of `allfed_spatial`:
+To set up dependencies for development of `allfed_spatial` (recommend using
+Python 3.7.7)
 
 ```pip install -r requirements.txt```
 
