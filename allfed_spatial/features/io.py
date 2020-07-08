@@ -72,15 +72,17 @@ def get_feature_schema(feature):
     }
 
 
-def write_features(features, path):
+def write_features(features, path, output_driver = "GPKG"):
     """ Write Features to specified path. Assumes geometries
     are in coordinate reference system EPSG 4326
 
     Arguments:
         features {list} -- list of Features
         path {str} -- Path to write to
+        output_driver {str} -- The fiona driver to use for writing.
+            Use "ESRI Shapefile" to generate a shapefile for use with flow.py
+            Defaults to "GPKG".
     """
-    output_driver = "GPKG"
 
     with fiona.open(
             path,
@@ -96,7 +98,7 @@ def write_features(features, path):
             output.write({'geometry': mapping(f.geom), 'properties': f.data})
 
 
-def write_shape(geometries, data, schema, path):
+def write_shape(geometries, data, schema, path, output_driver = "GPKG"):
     """ Write Shapely geometries to a specified path. Assumes geometries
     are in coordinate reference system EPSG 4326
 
@@ -105,8 +107,10 @@ def write_shape(geometries, data, schema, path):
         data {list} -- Array of data dictionaries indexed to geometries
         schema {dict} -- Fiona schema for data
         path {str} -- Path to write to
+        output_driver {str} --
+            The fiona driver to use for writing.
+            Defaults to "GPKG".
     """
-    output_driver = "GPKG"
 
     with fiona.open(
         path,
