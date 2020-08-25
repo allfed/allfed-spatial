@@ -2,6 +2,8 @@ from ortools.graph import pywrapgraph
 
 CAPACITY_PER_EDGE = 1000000000
 
+# for more detail see
+# https://developers.google.com/optimization/flow/mincostflow
 
 def preprocess_graph(G):
     # Add node indices and diff values
@@ -22,8 +24,6 @@ def setup_min_cost_flow(G, cost_field):
                                                     CAPACITY_PER_EDGE, edge[2][cost_field])
 
     for node in G.nodes():
-        if G.node[node]['diff'] != 0:
-            test = node
         min_cost_flow.SetNodeSupply(
             G.node[node]['index'], G.node[node]['diff'])
 
