@@ -12,7 +12,8 @@ def preprocess_graph(G):
         if 'diff' not in G.node[node]:
             G.node[node]['diff'] = 0
 
-
+#todo capacity per edge allowance
+#todo get mincostflow IDX -> edge dict returned as well
 def setup_min_cost_flow(G, cost_field):
     # Set up the optimisation problem
     min_cost_flow = pywrapgraph.SimpleMinCostFlow()
@@ -20,6 +21,7 @@ def setup_min_cost_flow(G, cost_field):
     for edge in G.edges(data=True):
         min_cost_flow.AddArcWithCapacityAndUnitCost(G.node[edge[0]]['index'], G.node[edge[1]]['index'],
                                                     CAPACITY_PER_EDGE, edge[2][cost_field])
+        #todo make bi-directional an option in preprocessing instead
         min_cost_flow.AddArcWithCapacityAndUnitCost(G.node[edge[1]]['index'], G.node[edge[0]]['index'],
                                                     CAPACITY_PER_EDGE, edge[2][cost_field])
 

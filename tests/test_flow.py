@@ -390,6 +390,82 @@ class Test_setup_min_cost_flow(LineBaseTest):
 			self.assertEqual(diffs, {101: 1, 0: 6, -102: 1})
 
 class Test_solve_min_cost_flow(unittest.TestCase):
-	pass
-	# test usage
+	#      B--E   
+	#     / \/ \  
+	#    /  /\  \ 
+	#   A--C--F--H
+	#    \  \/  / 
+	#     \ /\ /  
+	#      D--G   
+	# 
+	# Approx visualization of the graph in use here
+	# 
+	# A -> B,C,D
+	# B -> E,F
+	# C -> E,F,G
+	# D -> F,G
+	# E -> H
+	# F -> H
+	# G -> H
+
+	def test_solving(self):
+		with tempfile.TemporaryDirectory("-allfed-spatial-test") as tempdir:
+			filename = os.path.join(tempdir, "testfile.shp")
+			features = [
+				Feature(LineString([(0, 0), (1, 1)]), {"cost": 1}),
+				Feature(LineString([(0, 0), (1, 0)]), {"cost": 2}),
+				Feature(LineString([(0, 0), (1, -1)]), {"cost": 3}),
+				Feature(LineString([(1, 1), (2, 1)]), {"cost": 4}),
+				Feature(LineString([(1, 1), (2, 0)]), {"cost": 5}),
+				Feature(LineString([(1, 0), (2, 1)]), {"cost": 5}),
+				Feature(LineString([(1, 0), (2, 0)]), {"cost": 4}),
+				Feature(LineString([(1, 0), (2, -1)]), {"cost": 5}),
+				Feature(LineString([(1, -1), (2, 0)]), {"cost": 5}),
+				Feature(LineString([(1, -1), (2, -1)]), {"cost": 4}),
+				Feature(LineString([(2, 1), (3, 0)]), {"cost": 8}),
+				Feature(LineString([(2, 0), (3, 0)]), {"cost": 7}),
+				Feature(LineString([(2, -1), (3, 0)]), {"cost": 6}),
+			]
+
+			featureIO.write_features(features, filename, "ESRI Shapefile")
+
+			G = nx.read_shp(tempdir)
+
+			# no good way to push this into the shapefile given we use a schema
+			G.nodes()[(0, 0)]["diff"] = 101
+			G.nodes()[(3, 0)]["diff"] = -102
+
+			preprocess_graph(G)
+
+			solve_min_cost_flow(G, "cost")
+
+			# todo: get flow and cost into the graph
+			self.assertEqual(G[(0, 0)][(1, 1)]["flow"], 101)
+			self.assertEqual(G[(0, 0)][(1, 0)]["flow"], 0)
+			self.assertEqual(G[(0, 0)][(1, -1)]["flow"], 0)
+			self.assertEqual(G[(1, 1)][(2, 1)]["flow"], 0)
+			self.assertEqual(G[(1, 1)][(2, 0)]["flow"], 101)
+			self.assertEqual(G[(1, 0)][(2, 1)]["flow"], 0)
+			self.assertEqual(G[(1, 0)][(2, 0)]["flow"], 0)
+			self.assertEqual(G[(1, 0)][(2, -1)]["flow"], 0)
+			self.assertEqual(G[(1, -1)][(2, 0)]["flow"], 0)
+			self.assertEqual(G[(1, -1)][(2, -1)]["flow"], 0)
+			self.assertEqual(G[(2, 1)][(3, 0)]["flow"], 0)
+			self.assertEqual(G[(2, 0)][(3, 0)]["flow"], 101)
+			self.assertEqual(G[(2, -1)][(3, 0)]["flow"], 0)
+			self.assertEqual(G[(0, 0)][(1, 1)]["cost"], 101)
+			self.assertEqual(G[(0, 0)][(1, 0)]["cost"], 0)
+			self.assertEqual(G[(0, 0)][(1, -1)]["cost"], 0)
+			self.assertEqual(G[(1, 1)][(2, 1)]["cost"], 0)
+			self.assertEqual(G[(1, 1)][(2, 0)]["cost"], 505)
+			self.assertEqual(G[(1, 0)][(2, 1)]["cost"], 0)
+			self.assertEqual(G[(1, 0)][(2, 0)]["cost"], 0)
+			self.assertEqual(G[(1, 0)][(2, -1)]["cost"], 0)
+			self.assertEqual(G[(1, -1)][(2, 0)]["cost"], 0)
+			self.assertEqual(G[(1, -1)][(2, -1)]["cost"], 0)
+			self.assertEqual(G[(2, 1)][(3, 0)]["cost"], 0)
+			self.assertEqual(G[(2, 0)][(3, 0)]["cost"], 707)
+			self.assertEqual(G[(2, -1)][(3, 0)]["cost"], 0)
+
 	# test bi-directional issue?
+	# test with capacity info
